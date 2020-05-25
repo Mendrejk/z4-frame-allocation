@@ -21,6 +21,16 @@ class Process(firstPage: Int, lastPage: Int) {
     private val localityMinimalLength: Int = (LOCALITY_MINIMAL_LENGTH..(2 * LOCALITY_MINIMAL_LENGTH)).random()
     private val localityMaximalLength: Int = ((LOCALITY_MAXIMAL_LENGTH / 2)..(2 * LOCALITY_MAXIMAL_LENGTH)).random()
 
+    // holding frames in a map, so that last-use-index is easy to find
+    private val frameMap: MutableMap<Int, Int> = mutableMapOf()
+    private val frameMapCapacity: Int = 0
+    var pageFaultCount = 0
+        private set
+
+    // decided against inheritance or any other form on making those independent from base process due to time
+    // constraints, so they are just unused in some algorithms
+    //private val implement_algorithm_specific_values_here: Nothing = TODO()
+
     fun incrementLocalityChance(): Unit {
         localityCurrentChance += localityGain
         if (localityCurrentChance > 100) localityCurrentChance = 100
@@ -42,6 +52,14 @@ class Process(firstPage: Int, lastPage: Int) {
     }
 
     fun isLocalityReferencesLeftZero(): Boolean = localityReferencesLeft == 0
+
+    fun isFrameMapFull(): Boolean = frameMap.size == frameMapCapacity
+
+    fun removeLastRecentlyUsedReference(): Unit { frameMap.remove(frameMap.minBy { it.value }?.key) }
+
+    fun addReference(reference: Int, useTime: Int): Unit { frameMap[reference] = useTime }
+
+    fun incrementFaultCount(): Unit { pageFaultCount++ }
 
     private fun generateLocalityRange(): Unit {
         val rangeLength = generateLocalityScope()
