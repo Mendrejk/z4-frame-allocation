@@ -61,6 +61,12 @@ class Process(firstPage: Int, lastPage: Int) {
 
     fun incrementFaultCount(): Unit { pageFaultCount++ }
 
+    // roughly 1000 * pages
+    fun generateRoughReferencesAmount(): Int {
+        val multiplier: Int = (850..1150).random()
+        return multiplier * pages.count()
+    }
+
     private fun generateLocalityRange(): Unit {
         val rangeLength = generateLocalityScope()
         val rangeStartIndex = (0 until (pages.size - rangeLength)).random()
