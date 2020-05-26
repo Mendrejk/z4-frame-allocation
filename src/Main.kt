@@ -8,4 +8,6 @@ fun main() {
     println("\n---------------------------------------------------")
     val resultsEqualDistribution: List<Int> = equalDistribution(processes, references, FRAME_COUNT)
     println("equal distribution: $resultsEqualDistribution, sum: ${resultsEqualDistribution.sum()}")
+    val resultsProportionalDistribution: List<Int> = proportionalDistribution(processes, references, FRAME_COUNT)
+    println("proportional distribution: $resultsProportionalDistribution, sum: ${resultsProportionalDistribution.sum()}")
 }

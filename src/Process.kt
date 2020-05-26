@@ -61,6 +61,14 @@ class Process(firstPage: Int, lastPage: Int) {
 
     fun zeroFrameCapacity(): Unit { frameMapCapacity = 0 } //TODO CHANGE TO PROCESS FREEZING
 
+    fun decreaseFrameCapacity(decrease: Int): Unit {
+        frameMapCapacity -= decrease
+        if (frameMapCapacity < 0) frameMapCapacity = 0
+        while (frameMap.size > frameMapCapacity) {
+            frameMap.remove(frameMap.keys.random())
+        }
+    }
+
     fun removeLeastRecentlyUsedReference(): Unit { frameMap.remove(frameMap.minBy { it.value }?.key) }
 
     fun addReference(reference: Int, useTime: Int): Unit { frameMap[reference] = useTime }
