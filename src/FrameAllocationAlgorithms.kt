@@ -1,4 +1,5 @@
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 fun equalDistribution(processes: List<Process>, references: List<Int>, frameCount: Int): List<Int> {
@@ -145,6 +146,87 @@ fun pageFaultFrequency(processes: List<Process>, references: List<Int>, frameCou
     // reset all processes
     processes.forEach { it.reset() }
     return Pair(pageFaultCounts, thrashingCount)
+}
+
+fun zoneBasedAllocation(processes: List<Process>, references: List<Int>, frameCount: Int): List<Int> {
+    // start with proportional distribution
+    val pagesTotal: Int = PAGE_COUNT
+    var givenOutFrames: Int = 0
+    processes.forEach {
+        val currentFrames: Int = max((frameCount * it.pages.size / pagesTotal.toDouble()).roundToInt(), 1)
+        it.addFrameCapacity(currentFrames)
+        givenOutFrames += currentFrames
+    }
+    while (givenOutFrames > frameCount) {
+        val randomProcess: Process = processes.random()
+        if (randomProcess.frameMapCapacity > 1) {
+            randomProcess.decreaseFrameCapacity(1)
+            givenOutFrames--
+        }
+    }
+
+    val calculationScope: Int = WSS_CALCULATION_SCOPE
+    val calculationTime: Int = WSS_CALCULATION_TIME
+    var freeFrames: Int = 0
+
+    references.withIndex().forEach() { (index: Int, reference: Int) ->
+        if (index % calculationTime == 0 && index >= calculationScope) {
+            // while there are enough free frames resume frozen processes
+            for (process: Process in processes) {
+                if (freeFrames > 0) {
+                    if (process.isFrozen && freeFrames >= process.getWSS()) {
+                        process.resume(process.getWSS())
+                        freeFrames -= process.getWSS()
+                    }
+                } else break
+            }
+
+            // no wss can be larger than frame count
+            processes.forEach { if (it.getWSS() > frameCount) it.setWSS(frameCount) }
+
+            var totalFramesNeeded: Int = processes.filter { !it.isFrozen }.map { it.getWSS() }.sum()
+            // while there are not enough frames, freeze largest process
+            while (totalFramesNeeded > frameCount) {
+                val biggestProcess: Process = processes.filter { !it.isFrozen }.maxBy { it.frameMapCapacity }!!
+                totalFramesNeeded -= biggestProcess.getWSS()
+                freeFrames += biggestProcess.freeze()
+            }
+            // give processes their wanted amount of frames one-by-one
+            for (process: Process in processes) {
+                // don't allocate frames to frozen processes
+                if (process.isFrozen) continue
+                if (freeFrames == 0) break
+                if (process.getWSS() > process.frameMapCapacity) {
+                    val framesToAllocate: Int = min(freeFrames, process.getWSS() - process.frameMapCapacity)
+                    process.addFrameCapacity(framesToAllocate)
+                    freeFrames -= framesToAllocate
+                }
+            }
+            // well this should not work that way
+            if (index % calculationScope == 0) {
+                processes.forEach { if (!it.isFrozen) it.clearWorkingSet() }
+            }
+        }
+
+        val itProcess: Process = findProcess(processes, reference)
+        if (itProcess.isFrozen) {
+            itProcess.frozenQueue.add(reference)
+        } else {
+            itProcess.workingSetAdd(reference)
+            if (!itProcess.hasReference(reference)) {
+                if (itProcess.isFrameMapFull()) {
+                    itProcess.removeLeastRecentlyUsedReference()
+                }
+                itProcess.incrementFaultCount()
+            }
+            itProcess.addReference(reference, index)
+        }
+    }
+    processes.forEach { if (it.isFrozen) it.resume(it.getWSS()) }
+    val pageFaultCounts: List<Int> = List(processes.size) { processes[it].pageFaultCount }
+    // reset all processes
+    processes.forEach { it.reset() }
+    return pageFaultCounts
 }
 
 private fun findProcess(processes: List<Process>, page: Int): Process = processes.first { it.hasPage(page) }

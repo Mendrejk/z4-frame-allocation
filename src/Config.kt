@@ -9,3 +9,5 @@ const val PFF_CALCULATION_TIME = 40
 const val PFF_LOW = 0.30
 const val PFF_HIGH = 0.7
 const val PFF_CRITICAL = 0.85
+const val WSS_CALCULATION_SCOPE = 80
+const val WSS_CALCULATION_TIME = 40

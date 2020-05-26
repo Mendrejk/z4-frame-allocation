@@ -10,7 +10,6 @@ fun generateReferences(processes: List<Process>): List<Int> {
     for (i: Int in 1 until roughReferencesAmounts.size) {
         cumulativeDensities.add(cumulativeDensities[i - 1] + roughReferencesAmounts[ i ])
     }
-    // todo remove
     println("\nroughReferenceAmounts: $roughReferencesAmounts")
     println("cumulative densities: $cumulativeDensities")
     val tempWeights: MutableList<Int> = MutableList(processes.size) {0}

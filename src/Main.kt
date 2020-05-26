@@ -13,4 +13,6 @@ fun main() {
     val resultsPageFaultFrequency: Pair<List<Int>, Int> = pageFaultFrequency(processes, references, FRAME_COUNT)
     println("page fault frequency: ${resultsPageFaultFrequency.first}, sum: ${resultsPageFaultFrequency.first.sum()}," +
             " thrashing count: ${resultsPageFaultFrequency.second}")
+    val resultsZoneBasedAllocation: List<Int> = zoneBasedAllocation(processes, references, FRAME_COUNT)
+    println("zone based allocation: $resultsZoneBasedAllocation, sum: ${resultsZoneBasedAllocation.sum()}")
 }

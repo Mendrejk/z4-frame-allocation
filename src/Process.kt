@@ -33,17 +33,39 @@ class Process(firstPage: Int, lastPage: Int) {
 
     // decided against inheritance or any other form on making those independent from base process due to time
     // constraints, so they are just left unused in some algorithms
-    //private val implement_algorithm_specific_values_here: Nothing = TODO()
     private var pffReferences = 0
     private var pffPageFaults = 0
     var isFrozen: Boolean = false
         private set
     val frozenQueue: MutableList<Int> = mutableListOf()
 
+    //wss
+    private val workingSet: MutableList<Int> = mutableListOf()
+
+    fun workingSetAdd(reference: Int) {
+        if (reference !in workingSet) {
+            workingSet.add(reference)
+        }
+    }
+
+    fun getWSS(): Int {
+        return workingSet.size
+    }
+
+    fun setWSS(size: Int) {
+        while (workingSet.size > size) {
+            workingSet.removeAt(0)
+        }
+    }
+
+    fun clearWorkingSet() {
+        workingSet.clear()
+    }
+
     fun freeze(): Int {
         isFrozen = true
         val freedFrames: Int = frameMapCapacity
-        frameMapCapacity = 0
+        decreaseFrameCapacity(frameMapCapacity)
         frozenQueue.clear()
         return freedFrames
     }
@@ -139,7 +161,6 @@ class Process(firstPage: Int, lastPage: Int) {
         pageFaultCount = 0
         isFrozen = false
         frozenQueue.clear()
-        // add any others TODO
     }
 
     private fun lru() {
