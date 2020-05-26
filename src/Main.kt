@@ -1,6 +1,11 @@
 fun main() {
-    // a process generates on average 1000 references for each page it has got
-    val processes: List<Process> = generateProcesses(10, 100)
-    processes.forEach { println(it.pages) }
+    // a process generates roughly 1000 references for each page it has got, so 100 pages generate +- 100000 references
+    val processes: List<Process> = generateProcesses(PROCESS_COUNT, PAGE_COUNT)
+    print("Process' page counts: ")
+    processes.forEach { print("${it.pages.size} ") }
     val references: List<Int> = generateReferences(processes)
+    // give copy of processes as arguments for algorithms
+    println("\n---------------------------------------------------")
+    val resultsEqualDistribution: List<Int> = equalDistribution(processes, references, FRAME_COUNT)
+    println("equal distribution: $resultsEqualDistribution, sum: ${resultsEqualDistribution.sum()}")
 }

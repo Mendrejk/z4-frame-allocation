@@ -10,20 +10,29 @@ fun generateReferences(processes: List<Process>): List<Int> {
     for (i: Int in 1 until roughReferencesAmounts.size) {
         cumulativeDensities.add(cumulativeDensities[i - 1] + roughReferencesAmounts[ i ])
     }
+    // todo remove
+    println("\nroughReferenceAmounts: $roughReferencesAmounts")
+    println("cumulative densities: $cumulativeDensities")
+    val tempWeights: MutableList<Int> = MutableList(processes.size) {0}
 
-    return List(toGenerate) {
-        val determinedProcessIndex: Int = cumulativeDensities.indexOfFirst { it >= (0..toGenerate).random() }
+    val toReturn = List(toGenerate) {
+        val randomDeterminer: Int = (0..toGenerate).random()
+        val determinedProcessIndex: Int = cumulativeDensities.indexOfFirst { it >= randomDeterminer}
         val itProcess = processes[determinedProcessIndex]
             if (itProcess.hasLocality) {
                 itProcess.tickLocality()
                 if (itProcess.isLocalityReferencesLeftZero()) itProcess.stopLocality()
+                tempWeights[determinedProcessIndex]++
                 itProcess.localityCurrentRange.random()
             } else {
                 if ((0..100).random() <= itProcess.localityCurrentChance) itProcess.startLocality()
                 itProcess.incrementLocalityChance()
+                tempWeights[determinedProcessIndex]++
                 itProcess.pages.random()
             }
     }
+    print("gotten spread: $tempWeights")
+    return(toReturn)
 }
 
 fun generateProcesses(howMany: Int, pageCount: Int): List<Process> {

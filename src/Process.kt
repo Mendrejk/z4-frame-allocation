@@ -1,3 +1,5 @@
+import kotlin.test.todo
+
 class Process(firstPage: Int, lastPage: Int) {
     val pages: List<Int> = (firstPage..lastPage).toList()
     // takes the random values from config.kt and randomises based on them
@@ -23,7 +25,7 @@ class Process(firstPage: Int, lastPage: Int) {
 
     // holding frames in a map, so that last-use-index is easy to find
     private val frameMap: MutableMap<Int, Int> = mutableMapOf()
-    private val frameMapCapacity: Int = 0
+    private var frameMapCapacity: Int = 0
     var pageFaultCount = 0
         private set
 
@@ -55,11 +57,19 @@ class Process(firstPage: Int, lastPage: Int) {
 
     fun isFrameMapFull(): Boolean = frameMap.size == frameMapCapacity
 
-    fun removeLastRecentlyUsedReference(): Unit { frameMap.remove(frameMap.minBy { it.value }?.key) }
+    fun addFrameCapacity(increase: Int): Unit { if (increase > 0) frameMapCapacity += increase }
+
+    fun zeroFrameCapacity(): Unit { frameMapCapacity = 0 } //TODO CHANGE TO PROCESS FREEZING
+
+    fun removeLeastRecentlyUsedReference(): Unit { frameMap.remove(frameMap.minBy { it.value }?.key) }
 
     fun addReference(reference: Int, useTime: Int): Unit { frameMap[reference] = useTime }
 
     fun incrementFaultCount(): Unit { pageFaultCount++ }
+
+    fun hasReference(reference: Int): Boolean = reference in frameMap.keys
+
+    fun hasPage(page: Int): Boolean = page >= pages.first() && page <= pages.last()
 
     // roughly 1000 * pages
     fun generateRoughReferencesAmount(): Int {
@@ -78,4 +88,12 @@ class Process(firstPage: Int, lastPage: Int) {
     }
 
     private fun generateLocalityScope(): Int = (localityMinimalScope..localityMaximalScope).random()
+
+    // resets all relevant fields so that the process can be used by another algorithm
+    fun reset(): Unit {
+        frameMap.clear()
+        frameMapCapacity = 0
+        pageFaultCount = 0
+        // add any others TODO
+    }
 }
