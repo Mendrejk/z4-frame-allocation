@@ -5,3 +5,7 @@ const val LOCALITY_BASE_CHANCE = 20
 const val LOCALITY_GAIN = 2
 const val LOCALITY_MINIMAL_LENGTH = 2
 const val LOCALITY_MAXIMAL_LENGTH = 25
+const val PFF_CALCULATION_TIME = 40
+const val PFF_LOW = 0.30
+const val PFF_HIGH = 0.7
+const val PFF_CRITICAL = 0.85

@@ -10,4 +10,7 @@ fun main() {
     println("equal distribution: $resultsEqualDistribution, sum: ${resultsEqualDistribution.sum()}")
     val resultsProportionalDistribution: List<Int> = proportionalDistribution(processes, references, FRAME_COUNT)
     println("proportional distribution: $resultsProportionalDistribution, sum: ${resultsProportionalDistribution.sum()}")
+    val resultsPageFaultFrequency: Pair<List<Int>, Int> = pageFaultFrequency(processes, references, FRAME_COUNT)
+    println("page fault frequency: ${resultsPageFaultFrequency.first}, sum: ${resultsPageFaultFrequency.first.sum()}," +
+            " thrashing count: ${resultsPageFaultFrequency.second}")
 }

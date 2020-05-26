@@ -1,3 +1,4 @@
+import java.lang.Process
 import kotlin.test.todo
 
 class Process(firstPage: Int, lastPage: Int) {
@@ -25,13 +26,49 @@ class Process(firstPage: Int, lastPage: Int) {
 
     // holding frames in a map, so that last-use-index is easy to find
     private val frameMap: MutableMap<Int, Int> = mutableMapOf()
-    private var frameMapCapacity: Int = 0
+    var frameMapCapacity: Int = 0
+        private set
     var pageFaultCount = 0
         private set
 
     // decided against inheritance or any other form on making those independent from base process due to time
-    // constraints, so they are just unused in some algorithms
+    // constraints, so they are just left unused in some algorithms
     //private val implement_algorithm_specific_values_here: Nothing = TODO()
+    private var pffReferences = 0
+    private var pffPageFaults = 0
+    var isFrozen: Boolean = false
+        private set
+    val frozenQueue: MutableList<Int> = mutableListOf()
+
+    fun freeze(): Int {
+        isFrozen = true
+        val freedFrames: Int = frameMapCapacity
+        frameMapCapacity = 0
+        frozenQueue.clear()
+        return freedFrames
+    }
+
+    fun resume(newFrames: Int) {
+        isFrozen = false
+        frameMapCapacity = newFrames
+        lru()
+    }
+
+    fun resetPFF() {
+        pffReferences = 0
+        pffPageFaults = 0
+    }
+
+    fun incrementPffReferences() { pffReferences++ }
+
+    fun incrementPffPageFaults() { pffPageFaults++ }
+
+    fun calculatePff(): Double {
+        if (pffReferences != 0) return (pffPageFaults.toDouble() / pffReferences)
+        // else return something that doesn't impact pff
+        // not a hack at all
+        else return (PFF_HIGH - PFF_LOW) / 2
+    }
 
     fun incrementLocalityChance(): Unit {
         localityCurrentChance += localityGain
@@ -58,8 +95,6 @@ class Process(firstPage: Int, lastPage: Int) {
     fun isFrameMapFull(): Boolean = frameMap.size == frameMapCapacity
 
     fun addFrameCapacity(increase: Int): Unit { if (increase > 0) frameMapCapacity += increase }
-
-    fun zeroFrameCapacity(): Unit { frameMapCapacity = 0 } //TODO CHANGE TO PROCESS FREEZING
 
     fun decreaseFrameCapacity(decrease: Int): Unit {
         frameMapCapacity -= decrease
@@ -102,6 +137,20 @@ class Process(firstPage: Int, lastPage: Int) {
         frameMap.clear()
         frameMapCapacity = 0
         pageFaultCount = 0
+        isFrozen = false
+        frozenQueue.clear()
         // add any others TODO
+    }
+
+    private fun lru() {
+        frozenQueue.withIndex().forEach() { (index: Int, reference: Int) ->
+            if (hasReference(reference)) {
+                if (isFrameMapFull()) {
+                    removeLeastRecentlyUsedReference()
+                }
+                incrementFaultCount()
+            }
+            addReference(reference, index)
+        }
     }
 }
